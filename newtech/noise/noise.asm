@@ -1,64 +1,67 @@
-	NAM	NOISE	REV.A  SEPTEMBER 1977
-	OPT	NOP,O
-* COPYRIGHT (C) ALL RIGHTS RESERVED
-* NEWTECH COMPUTER SYSTEMS,INC.
-*
+; NAM     NOISE   REV.A  SEPTEMBER 1977
+; OPT     NOP,O
+; COPYRIGHT (C) ALL RIGHTS RESERVED
+; NEWTECH COMPUTER SYSTEMS,INC.
+;
 
-	ORG	$0100
-	LDX	#TBL		;INIT. ENVELOPE POINTER.
-	STX	TBLP
-LOOP2	LDAA	#$02		;IF ENVELOPE IS
-	LDX	TBLP		;COMPLETE RETURN.
-	CMPA	0,X
-	BEQ	EXIT
-	LDX	TBLP		;ELSE INC. ENV. POINTER.
-	INX
-	STX	TBLP
-	LDAA	DURA		;OUTPUT N RANDOM VALUES
-	STAA	DURAT		;WHERE N=DURA
-LOOP1	LDAA	FREQ		;DELAY ACCORDING TO
-LOOP3	DECA			;FREQUENCY PARAMETER.
-	BNE	LOOP3
-	BSR	RNDM		;GET RANDOM NUMBER IN A.
-	LDX	TBLP		;SCALE AMPLITUDE ACCORDING
-	ANDA	0,X		; TO ENV. TABLE.
-	STAA	MOD68		;OUTPUT TO MUSIC BOARD
-	DEC	DURAT
-	BNE 	LOOP1
-	BRA	LOOP2		;PROCESS NEXT AMPLITUDE.
-EXIT	JMP	MIKBUG		;YOUR EXIT MAY DIFFER!
-* RANDOM NUMBER GENRATOR. GENERATES 16 BIT
-* VALUE IN "NMBER".  RETURNS MOST SIGNIFICANT
-* BYTE IN A.
-RNDM	LDAA	MSB		;EXCLUSIVE-OR SHIFT
-	RORA			;REGISTER BITS 15,14,12&3.
-	EORA	MSB		;15 & 14
-	RORA
-	RORA
-	EORA	MSB		;12
-	RORA
-	EORA	LSB		;3
-	RORA
-	RORA
-	ANDA	#$01		;MASK BIT 0
-	ASL	LSB		;SHIFT NUMBER LEFT.
-	ROL	MSB		;SETTING BIT 0 ACCORDING
-	ADDA	LSB		;TO EXCLUSIVE-OR CALC
-	STAA	LSB
-	RTS
-*
-* AMPLITUDE ENVELOPE SPECIFICATION:
-TBL	FCB	$FF,$FF,$FF,$7F,$7F,$3F
-	FCB	$3F,$1F,$0F,$07,$02
-*
-FREQ	FCB	$30		;NOISE BAND PARAMETERS
-DURA	FCB	$FF		;DURATION PARAMETER.
-NMBER	FDB	$01		;SHIFT REGISTER
-MOD68	EQU	$8010		;MUSIC BOARD I/0 ADDRESS.
-MIKBUG	EQU	$E0D0
-TBLP	RMB	2		;ENVELOPE TABLE POINTER
-DURAT	RMB	1		;TEMPORARY DURATION COUNT.
-MSB	EQU	NMBER		;RANDOM NUMBER ROUTINE.
-LSB	EQU	NMBER+1
-	NOP
-	END
+                    org       $0100
+                    ldx       #TBL                ; INIT. ENVELOPE POINTER.
+                    stx       TBLP
+LOOP2               ldaa      #$02                ; IF ENVELOPE IS
+                    ldx       TBLP                ; COMPLETE RETURN.
+                    cmpa      0,X
+                    beq       EXIT
+                    ldx       TBLP                ; ELSE INC. ENV. POINTER.
+                    inx
+                    stx       TBLP
+                    ldaa      DURA                ; OUTPUT N RANDOM VALUES
+                    staa      DURAT               ; WHERE N=DURA
+LOOP1               ldaa      FREQ                ; DELAY ACCORDING TO
+LOOP3               deca                          ; FREQUENCY PARAMETER.
+                    bne       LOOP3
+                    bsr       RNDM                ; GET RANDOM NUMBER IN A.
+                    ldx       TBLP                ; SCALE AMPLITUDE ACCORDING
+                    anda      0,X                 ; TO ENV. TABLE.
+                    staa      MOD68               ; OUTPUT TO MUSIC BOARD
+                    dec       DURAT
+                    bne       LOOP1
+                    bra       LOOP2               ; PROCESS NEXT AMPLITUDE.
+
+EXIT                jmp       MIKBUG              ; YOUR EXIT MAY DIFFER!
+
+; RANDOM NUMBER GENRATOR. GENERATES 16 BIT
+; VALUE IN "NMBER".  RETURNS MOST SIGNIFICANT
+; BYTE IN A.
+RNDM                ldaa      MSB                 ; EXCLUSIVE-OR SHIFT
+                    rora                          ; REGISTER BITS 15,14,12&3.
+                    eora      MSB                 ; 15 & 14
+                    rora
+                    rora
+                    eora      MSB                 ; 12
+                    rora
+                    eora      LSB                 ; 3
+                    rora
+                    rora
+                    anda      #$01                ; MASK BIT 0
+                    asl       LSB                 ; SHIFT NUMBER LEFT.
+                    rol       MSB                 ; SETTING BIT 0 ACCORDING
+                    adda      LSB                 ; TO EXCLUSIVE-OR CALC
+                    staa      LSB
+                    rts
+
+;
+; AMPLITUDE ENVELOPE SPECIFICATION:
+TBL                 fcb       $FF,$FF,$FF,$7F,$7F,$3F
+                    fcb       $3F,$1F,$0F,$07,$02
+;
+FREQ                fcb       $30                 ; NOISE BAND PARAMETERS
+DURA                fcb       $FF                 ; DURATION PARAMETER.
+NMBER               fdb       $01                 ; SHIFT REGISTER
+MOD68               equ       $8010               ; MUSIC BOARD I/0 ADDRESS.
+MIKBUG              equ       $E0D0
+TBLP                rmb       2                   ; ENVELOPE TABLE POINTER
+DURAT               rmb       1                   ; TEMPORARY DURATION COUNT.
+MSB                 equ       NMBER               ; RANDOM NUMBER ROUTINE.
+LSB                 equ       NMBER+1
+                    nop
+                    end

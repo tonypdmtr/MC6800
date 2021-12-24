@@ -1,46 +1,49 @@
-	NAM	PHASOR	REV.A  SEPTEMBER 1977
-	OPT	NOP,O
-* COPYRIGHT (C) ALL RIGHTS RESERVED
-* NEWTECH COMPUTER SYSTEMS,INC.
-*
+; NAM     PHASOR  REV.A  SEPTEMBER 1977
+; OPT     NOP,O
+; COPYRIGHT (C) ALL RIGHTS RESERVED
+; NEWTECH COMPUTER SYSTEMS,INC.
+;
 
-	ORG	$0100
-START	LDAA	SWEEPN		;INIT. SWEEP COUNT
-	STAA	SWEEPS
-NEXTS	LDAA	#0		;EXIT IF SWEEPS COUNT0
-	CMPA	SWEEPS		;ELSE DECREMENT COUNT &
-	BEQ	EXIT		;DO ONE SWEEP
-	DEC	SWEEPS
-	LDAA	FIRSTF		;INIT.FREQ.PARAMETER.
-	STAA	FREQ
-	LDAA	RATE		;GET SWEEP RATE PARAM.
-LOOP3	DECA			;DECREMENT IT.
-	BNE	LOOP1		;IF N.E.0 BRANCH.
-	INC	FREQ		;ELSE DECREASE FREQ.
-	LDAA	LASTF		;IF LOWEST FREQUENCY
-	CMPA	FREQ		;THEN SWEEP IS DONE SO
-	BEQ	NEXTS		;GO NEXT SWEEP.
-	LDAA	RATE		;ELSE RESTORE RATE PARAM.
-	BRA	LOOP2
-LOOP1	COM	0,X		;WASTE TIME
-	COM    0,X
-	NOP
-LOOP2	LDAB	FREQ		;HALF-WAVE TIMEOUT
-LOOP4	DECB
-	BNE	LOOP4
-	COM	TOGGLE		;OUTPUT COMPLEMENT TO
-	LDAB	TOGGLE		;MUSIC BOARD.
-	STAB	MOD68
-	BRA	LOOP3
-EXIT	JMP	MIKBUG
-MOD68	EQU	$8010		;MUSIC BOARD ADDRESS.
-SWEEPN	FCB	$0D		;DESIRED # OF SWEEPS.
-SWEEPS	RMB	1		;TEMPORARY SWEEP COUNT
-FIRSTF	FCB	$01		;STARTING SWEEP PARAM.
-LASTF	FCB	$FF		;ENDING SWEEP PARAM.
-FREQ	RMB	1		;TEMPORARY FREQ.PARAM.
-RATE	FCB	$01		;SWEEP RATE PARAMETER.
-TOGGLE	FCB	0
-MIKBUG	EQU	$E0D0
-	NOP
-	END
+                    org       $0100
+START               ldaa      SWEEPN              ; INIT. SWEEP COUNT
+                    staa      SWEEPS
+NEXTS               ldaa      #0                  ; EXIT IF SWEEPS COUNT0
+                    cmpa      SWEEPS              ; ELSE DECREMENT COUNT &
+                    beq       EXIT                ; DO ONE SWEEP
+                    dec       SWEEPS
+                    ldaa      FIRSTF              ; INIT.FREQ.PARAMETER.
+                    staa      FREQ
+                    ldaa      RATE                ; GET SWEEP RATE PARAM.
+LOOP3               deca                          ; DECREMENT IT.
+                    bne       LOOP1               ; IF N.E.0 BRANCH.
+                    inc       FREQ                ; ELSE DECREASE FREQ.
+                    ldaa      LASTF               ; IF LOWEST FREQUENCY
+                    cmpa      FREQ                ; THEN SWEEP IS DONE SO
+                    beq       NEXTS               ; GO NEXT SWEEP.
+                    ldaa      RATE                ; ELSE RESTORE RATE PARAM.
+                    bra       LOOP2
+
+LOOP1               com       0,X                 ; WASTE TIME
+                    com       0,X
+                    nop
+LOOP2               ldab      FREQ                ; HALF-WAVE TIMEOUT
+LOOP4               decb
+                    bne       LOOP4
+                    com       TOGGLE              ; OUTPUT COMPLEMENT TO
+                    ldab      TOGGLE              ; MUSIC BOARD.
+                    stab      MOD68
+                    bra       LOOP3
+
+EXIT                jmp       MIKBUG
+
+MOD68               equ       $8010               ; MUSIC BOARD ADDRESS.
+SWEEPN              fcb       $0D                 ; DESIRED # OF SWEEPS.
+SWEEPS              rmb       1                   ; TEMPORARY SWEEP COUNT
+FIRSTF              fcb       $01                 ; STARTING SWEEP PARAM.
+LASTF               fcb       $FF                 ; ENDING SWEEP PARAM.
+FREQ                rmb       1                   ; TEMPORARY FREQ.PARAM.
+RATE                fcb       $01                 ; SWEEP RATE PARAMETER.
+TOGGLE              fcb       0
+MIKBUG              equ       $E0D0
+                    nop
+                    end

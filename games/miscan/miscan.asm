@@ -1,277 +1,278 @@
-*      "MISSIONARIES AND CANNIBALS" GAME
-*      ORIGINAL PROGRAM BY PHILIP N. THEURER
-*      REV. 1.0 BY MOTOROLA MICROSYSTEMS NOVEMBER 25, 1976
-*      STARTING ADDRESS: 0100
-       SPC 1
-       ORG $0080
-MISA   RMB 1
-MISB   RMB 1
-CANA   RMB 1
-CANB   RMB 1
-MISAT  RMB 1
-MISBT  RMB 1
-CANAT  RMB 1
-CANBT  RMB 1
-TRIP   RMB 1
-COUNT1 RMB 1
-COUNT2 RMB 1
-COUNT3 RMB 1
-COUNT4 RMB 1
-       SPC 1
-INCHNP EQU $E1AC
-OUTCH  EQU $E1D1
-PDATA  EQU $e07e
-RETURN EQU $e0d0
-       SPC 1
-       ORG $0100
-BEGIN  LDX #INTRO PRINT INSTRUCTIONS
-BEGIN1 JSR PDATA
-BEGIN2 LDAA #3
-       STAA MISA
-       STAA CANA
-       CLRA
-       STAA MISB
-       STAA CANB
-       STAA TRIP
-       SPC 1
-GAME   JSR P2SP
-       JSR P2SP
-       JMP RIVER
-       SPC 1
-CONTIN JSR PCRLF
-       TST TRIP
-       BNE RGHTAR
-       LDAA #'<
-       BRA F1
-       SPC 1
-RGHTAR LDAA #'>
-F1     JSR OUTCH
-       JSR OUTCH
-       LDX MISA STORE LAST LINE VALUES
-       STX MISAT
-       LDX CANA
-       STX CANAT
-       LDAA #2
-       STAA COUNT2
-       STAA COUNT3
-LOOP   JSR INCHNP
-       CMPA #'M
-       BEQ F2
-       CMPA #'C
-       BEQ F3
-       CMPA #'E
-       BEQ F4
-       LDX #CR2LF
-       CMPA #'R
-       BEQ BEGIN1
-       CMPA #'I
-       BEQ BEGIN
-       CMPA #'X
-       BNE *+5
-       JMP RETURN
-       BRA ERRORR
-       SPC 1
-F4     DEC COUNT3
-       BNE F5
-       BRA ERRORR
-       SPC 1
-F2     TST TRIP MOVE MISSIONARY
-       BNE ODDMIS
-       TST MISB
-       BNE MISBNZ
-       BRA ERRORR NO MISSIONARY B, ERROR
-       SPC 1
-MISBNZ DEC MISB MOVE LEFT IF TRIP FLAG 0
-       INC MISA
-       BRA F5
-       SPC 1
-ODDMIS TST MISA
-       BNE MISANZ
-ERRORR JMP ERROR NO MISSIONARY A, ERROR
-       SPC 1
-MISANZ DEC MISA MOVE RIGHT IF TRIP FLAG NOT 0
-       INC MISB
-       BRA F5
-       SPC 1
-F3     TST TRIP MOVE CANNIBAL
-       BNE ODDCAN
-       TST CANB
-       BNE CANBNZ
-       BRA ERRORR NO CANNIBAL B, ERROR
-       SPC 1
-CANBNZ DEC CANB MOVE LEFT
-       INC CANA
-       BRA F5
-       SPC 1
-ODDCAN TST CANA
-       BNE CANANZ
-       BRA ERRORR NO CANNIBAL A, ERROR
-       SPC 1
-CANANZ DEC CANA MOVE RIGHT
-       INC CANB
-F5     DEC COUNT2
-       BNE LOOP
-RIVER  LDAA #10
-       STAA COUNT1
-       LDAA #$20
-SLOOP  BSR OUTCHR
-       DEC COUNT1
-       BNE SLOOP
-       LDAA CANA PRNT CANA VALUE
-       BSR ONC
-       LDAA #'C
-       BSR OC2S
-       LDAA MISA PRINT MISA VALUE
-       BSR ONC
-       LDAA #'M
-       BSR OC2S
-       LDAA #16
-       STAA COUNT1
-F6     TST TRIP
-       BNE RGHTPT
-       LDAA #'<
-       BSR OUTCHR
-       BRA F7
-       SPC 1
-OUTCHR JMP OUTCH
-       SPC 1
-RGHTPT LDAA #'>
-       BSR OUTCHR
-F7     DEC COUNT1
-       BNE F6
-       BSR P2SP
-       LDAA CANB PRINT CANB VALUE
-       BSR ONC
-       LDAA #'C
-       BSR OC2S
-       LDAA MISB PRINT MISB VALUE
-       BSR ONC
-       LDAA #'M
-       BSR OUTCHR
-       TST MISA MISA AND CANA =  0???
-       BNE F9
-       TST CANA
-       BNE F9
-       BRA CONGTR YES WIN
-       SPC 1
-F9     LDAA CANA IS CANA > MISA?
-       CMPA MISA
-       BLE F10
-       TST MISA MISA NOT 0?
-       BEQ F10
-       BRA BURN YES LOSE
-       SPC 1
-F10    LDAA CANB IS CANB > MISB
-       CMPA MISB
-       BLE F11
-       TST MISB MISB NOT 0?
-       BEQ F11
-       BRA BURN YES LOSE
-       SPC 1
-F11    COM TRIP COMPLEMENT TRIP FLAG
-       JMP CONTIN
-       SPC 3
-*SUBROUTINES
-       SPC 1
-OC2S   BSR OUTCHR
-P2SP   JSR PSPACE
-*       JSR PSPACE
-       RTS
-       SPC 1
-ONC    ORAA #$30
-       BSR OUTCHR
-       RTS
-       SPC 1
-ERROR  LDAA #'?
-       BSR OUTCHR
-       LDAA #7 BELL
-       BSR OUTCHR
-       LDX MISAT RESTORE VALUE TO
-       STX MISA PREVIOUS TRIP
-       LDX CANAT
-       STX CANA
-       JMP CONTIN
-       SPC 1
-BURN   LDX #LOSE PRINT LOSE MSG
-       JSR PDATA
-       JMP BEGIN2
-       SPC 1
-CONGTR LDX #WIN PRINT WIN MSG
-       JSR PDATA
-WAIT   JSR INCHNP
-       CMPA #'I
-       BNE WAIT
-       JMP BEGIN
-       SPC 3
-*MESSAGES
-       SPC 1
-INTRO  FCB $D,$A,$A,$A,$A
-       FCC "                   MISSIONARIES AND "
-       FCC "CANNIBALS"
-       FCB $D,$A,$A
-       FCC "             ORIGINAL PROGRAM BY "
-       FCC "PHILIP N. THEURER"
-       FCB $D,$A
-       FCC "            MOTOROLA MICROSYSTEMS "
-       FCC "NOVEMBER 25, 1976"
-       FCB $D,$A,$A,$A
-       FCC "   THREE MISSIONARIES AND THREE "
-       FCC "CANNIBALS ARE TRAVELING TOGETHER"
-       FCB $D,$A
-       FCC "AND COME UPON THE GREAT UGAHNA "
-       FCC "RIVER WHICH THEY MUST CROSS.  UN-"
-       FCB $D,$A
-       FCC "FORTUNATELY THEY HAVE ONLY ONE B"
-       FCC "OAT AND IT CAN ONLY HOLD TWO PEOPLE."
-       FCB $D,$A
-       FCC "TO FURTHER COMPLICATE MATTERS,"
-       FCC " THE CANNIBALS ARE UNCIVILIZED AND"
-       FCB $D,$A
-       FCC "WILL EAT THE MISSIONARIES IF AT"
-       FCC " ANY TIME THEY OUTNUMBER THEM."
-       FCB $D,$A
-       FCC "   YOUR MISSION IS TO MOVE ALL THE "
-       FCC "CANNIBALS AND MISSIONARIES ACROSS"
-       FCB $D,$A
-       FCC "THE RIVER WITHOUT HAVING ANY OF "
-       FCC "THE MISSIONARIES DEVOURED BY THE"
-       FCB $D,$A
-       FCC "CANNIBALS.  ARROWS WILL SHOW WHICH"
-       FCC " WAY THE BOAT IS READY TO SAIL."
-       FCB $D,$A
-       FCC "TYPE AN 'M' TO PLACE A MISSIONARY"
-       FCC " IN THE BOAT, A 'C' TO PLACE A"
-       FCB $D,$A
-       FCC "CANNIBAL IN THE BOAT, OR AN 'E' TO"
-       FCC " LEAVE AN EMPTY SEAT.  TO RESTART"
-       FCB $D,$A
-       FCC "THE GAME TYPE AN 'R', OR TO HAVE "
-       FCC "THE INSTRUCTIONS REPRINTED TYPE AN 'I'"
-       FCB $D,$A
-       FCC "TO EXIT PROGRAM TYPE AN 'X'"
-       FCB $D,$A
-       FCC "GOOD LUCK!"
+;      "MISSIONARIES AND CANNIBALS" GAME
+;      ORIGINAL PROGRAM BY PHILIP N. THEURER
+;      REV. 1.0 BY MOTOROLA MICROSYSTEMS NOVEMBER 25, 1976
+;      STARTING ADDRESS: 0100
 
-CR2LF  FCB $D,$A,$A,4
-WIN    FCB $D,$A,$A
-       FCC "   CONGRATULATIONS SMART ALEC. "
-       FCC " CANNIBALS ALL OVER THE WORLD WILL"
-       FCB $D,$A
-       FCC "STARVE BECAUSE OF YOU!!!"
-       FCB $D,$A,$A,4
-LOSE   FCB $D,$A,$A
-       FCC "   I CAN SEE THAT YOU ARE DOING"
-       FCC " YOUR PART FOR ZERO POPULATION GROWTH."
-       FCB $D,$A,$A
-       FCC "BURP!!!!"
-       FCB 7,$D,$A,$A,4
-       SPC 1
-PCRLF  LDX #CR2LF
-       JSR PDATA
-       RTS
+                    org       $0080
+MISA                rmb       1
+MISB                rmb       1
+CANA                rmb       1
+CANB                rmb       1
+MISAT               rmb       1
+MISBT               rmb       1
+CANAT               rmb       1
+CANBT               rmb       1
+TRIP                rmb       1
+COUNT1              rmb       1
+COUNT2              rmb       1
+COUNT3              rmb       1
+COUNT4              rmb       1
 
-PSPACE LDAA #$20
-       JSR OUTCH
-       RTS
+INCHNP              equ       $E1AC
+OUTCH               equ       $E1D1
+PDATA               equ       $e07e
+RETURN              equ       $e0d0
 
-	END
+                    org       $0100
+BEGIN               ldx       #INTRO              ; PRINT INSTRUCTIONS
+BEGIN1              jsr       PDATA
+BEGIN2              ldaa      #3
+                    staa      MISA
+                    staa      CANA
+                    clra
+                    staa      MISB
+                    staa      CANB
+                    staa      TRIP
+
+GAME                jsr       P2SP
+                    jsr       P2SP
+                    jmp       RIVER
+
+CONTIN              jsr       PCRLF
+                    tst       TRIP
+                    bne       RGHTAR
+                    ldaa      #'<'
+                    bra       F1
+
+RGHTAR              ldaa      #'>'
+F1                  jsr       OUTCH
+                    jsr       OUTCH
+                    ldx       MISA                ; STORE LAST LINE VALUES
+                    stx       MISAT
+                    ldx       CANA
+                    stx       CANAT
+                    ldaa      #2
+                    staa      COUNT2
+                    staa      COUNT3
+LOOP                jsr       INCHNP
+                    cmpa      #'M'
+                    beq       F2
+                    cmpa      #'C'
+                    beq       F3
+                    cmpa      #'E'
+                    beq       F4
+                    ldx       #CR2LF
+                    cmpa      #'R'
+                    beq       BEGIN1
+                    cmpa      #'I'
+                    beq       BEGIN
+                    cmpa      #'X'
+                    bne       *+5
+                    jmp       RETURN
+
+                    bra       ERRORR
+
+F4                  dec       COUNT3
+                    bne       F5
+                    bra       ERRORR
+
+F2                  tst       TRIP                ; MOVE MISSIONARY
+                    bne       ODDMIS
+                    tst       MISB
+                    bne       MISBNZ
+                    bra       ERRORR              ; NO MISSIONARY B, ERROR
+
+MISBNZ              dec       MISB                ; MOVE LEFT IF TRIP FLAG 0
+                    inc       MISA
+                    bra       F5
+
+ODDMIS              tst       MISA
+                    bne       MISANZ
+ERRORR              jmp       ERROR               ; NO MISSIONARY A, ERROR
+
+MISANZ              dec       MISA                ; MOVE RIGHT IF TRIP FLAG NOT 0
+                    inc       MISB
+                    bra       F5
+
+F3                  tst       TRIP                ; MOVE CANNIBAL
+                    bne       ODDCAN
+                    tst       CANB
+                    bne       CANBNZ
+                    bra       ERRORR              ; NO CANNIBAL B, ERROR
+
+CANBNZ              dec       CANB                ; MOVE LEFT
+                    inc       CANA
+                    bra       F5
+
+ODDCAN              tst       CANA
+                    bne       CANANZ
+                    bra       ERRORR              ; NO CANNIBAL A, ERROR
+
+CANANZ              dec       CANA                ; MOVE RIGHT
+                    inc       CANB
+F5                  dec       COUNT2
+                    bne       LOOP
+RIVER               ldaa      #10
+                    staa      COUNT1
+                    ldaa      #$20
+SLOOP               bsr       OUTCHR
+                    dec       COUNT1
+                    bne       SLOOP
+                    ldaa      CANA                ; PRNT CANA VALUE
+                    bsr       ONC
+                    ldaa      #'C'
+                    bsr       OC2S
+                    ldaa      MISA                ; PRINT MISA VALUE
+                    bsr       ONC
+                    ldaa      #'M'
+                    bsr       OC2S
+                    ldaa      #16
+                    staa      COUNT1
+F6                  tst       TRIP
+                    bne       RGHTPT
+                    ldaa      #'<'
+                    bsr       OUTCHR
+                    bra       F7
+
+OUTCHR              jmp       OUTCH
+
+RGHTPT              ldaa      #'>'
+                    bsr       OUTCHR
+F7                  dec       COUNT1
+                    bne       F6
+                    bsr       P2SP
+                    ldaa      CANB                ; PRINT CANB VALUE
+                    bsr       ONC
+                    ldaa      #'C'
+                    bsr       OC2S
+                    ldaa      MISB                ; PRINT MISB VALUE
+                    bsr       ONC
+                    ldaa      #'M'
+                    bsr       OUTCHR
+                    tst       MISA                ; MISA AND CANA = 0???
+                    bne       F9
+                    tst       CANA
+                    bne       F9
+                    bra       CONGTR              ; YES WIN
+
+F9                  ldaa      CANA                ; IS CANA > MISA?
+                    cmpa      MISA
+                    ble       F10
+                    tst       MISA                ; MISA NOT 0?
+                    beq       F10
+                    bra       BURN                ; YES LOSE
+
+F10                 ldaa      CANB                ; IS CANB > MISB
+                    cmpa      MISB
+                    ble       F11
+                    tst       MISB                ; MISB NOT 0?
+                    beq       F11
+                    bra       BURN                ; YES LOSE
+
+F11                 com       TRIP                ; COMPLEMENT TRIP FLAG
+                    jmp       CONTIN
+
+; *SUBROUTINES
+
+OC2S                bsr       OUTCHR
+P2SP                jsr       PSPACE
+;       JSR PSPACE
+                    rts
+
+ONC                 oraa      #$30
+                    bsr       OUTCHR
+                    rts
+
+ERROR               ldaa      #'?'
+                    bsr       OUTCHR
+                    ldaa      #7                  ; BELL
+                    bsr       OUTCHR
+                    ldx       MISAT               ; RESTORE VALUE TO
+                    stx       MISA                ; PREVIOUS TRIP
+                    ldx       CANAT
+                    stx       CANA
+                    jmp       CONTIN
+
+BURN                ldx       #LOSE               ; PRINT LOSE MSG
+                    jsr       PDATA
+                    jmp       BEGIN2
+
+CONGTR              ldx       #WIN                ; PRINT WIN MSG
+                    jsr       PDATA
+WAIT                jsr       INCHNP
+                    cmpa      #'I'
+                    bne       WAIT
+                    jmp       BEGIN
+
+; *MESSAGES
+
+INTRO               fcb       $D,$A,$A,$A,$A
+                    fcc       "                   MISSIONARIES AND "
+                    fcc       "CANNIBALS"
+                    fcb       $D,$A,$A
+                    fcc       "             ORIGINAL PROGRAM BY "
+                    fcc       "PHILIP N. THEURER"
+                    fcb       $D,$A
+                    fcc       "            MOTOROLA MICROSYSTEMS "
+                    fcc       "NOVEMBER 25, 1976"
+                    fcb       $D,$A,$A,$A
+                    fcc       "   THREE MISSIONARIES AND THREE "
+                    fcc       "CANNIBALS ARE TRAVELING TOGETHER"
+                    fcb       $D,$A
+                    fcc       "AND COME UPON THE GREAT UGAHNA "
+                    fcc       "RIVER WHICH THEY MUST CROSS.  UN-"
+                    fcb       $D,$A
+                    fcc       "FORTUNATELY THEY HAVE ONLY ONE B"
+                    fcc       "OAT AND IT CAN ONLY HOLD TWO PEOPLE."
+                    fcb       $D,$A
+                    fcc       "TO FURTHER COMPLICATE MATTERS,"
+                    fcc       " THE CANNIBALS ARE UNCIVILIZED AND"
+                    fcb       $D,$A
+                    fcc       "WILL EAT THE MISSIONARIES IF AT"
+                    fcc       " ANY TIME THEY OUTNUMBER THEM."
+                    fcb       $D,$A
+                    fcc       "   YOUR MISSION IS TO MOVE ALL THE "
+                    fcc       "CANNIBALS AND MISSIONARIES ACROSS"
+                    fcb       $D,$A
+                    fcc       "THE RIVER WITHOUT HAVING ANY OF "
+                    fcc       "THE MISSIONARIES DEVOURED BY THE"
+                    fcb       $D,$A
+                    fcc       "CANNIBALS.  ARROWS WILL SHOW WHICH"
+                    fcc       " WAY THE BOAT IS READY TO SAIL."
+                    fcb       $D,$A
+                    fcc       "TYPE AN 'M' TO PLACE A MISSIONARY"
+                    fcc       " IN THE BOAT, A 'C' TO PLACE A"
+                    fcb       $D,$A
+                    fcc       "CANNIBAL IN THE BOAT, OR AN 'E' TO"
+                    fcc       " LEAVE AN EMPTY SEAT.  TO RESTART"
+                    fcb       $D,$A
+                    fcc       "THE GAME TYPE AN 'R', OR TO HAVE "
+                    fcc       "THE INSTRUCTIONS REPRINTED TYPE AN 'I'"
+                    fcb       $D,$A
+                    fcc       "TO EXIT PROGRAM TYPE AN 'X'"
+                    fcb       $D,$A
+                    fcc       "GOOD LUCK!"
+
+CR2LF               fcb       $D,$A,$A,4
+WIN                 fcb       $D,$A,$A
+                    fcc       "   CONGRATULATIONS SMART ALEC. "
+                    fcc       " CANNIBALS ALL OVER THE WORLD WILL"
+                    fcb       $D,$A
+                    fcc       "STARVE BECAUSE OF YOU!!!"
+                    fcb       $D,$A,$A,4
+LOSE                fcb       $D,$A,$A
+                    fcc       "   I CAN SEE THAT YOU ARE DOING"
+                    fcc       " YOUR PART FOR ZERO POPULATION GROWTH."
+                    fcb       $D,$A,$A
+                    fcc       "BURP!!!!"
+                    fcb       7,$D,$A,$A,4
+
+PCRLF               ldx       #CR2LF
+                    jsr       PDATA
+                    rts
+
+PSPACE              ldaa      #$20
+                    jsr       OUTCH
+                    rts
+
+                    end
